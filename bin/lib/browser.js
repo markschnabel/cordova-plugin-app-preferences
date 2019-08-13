@@ -1,10 +1,10 @@
 var mappings = require("./mappings"),
-	platformName = "android";
+	platformName = "browser";
 
 module.exports = function (context) {
 
 	var
-		req = context ? context.requireCordovaModule : require,
+	req = context ? context.requireCordovaModule : require,
 		Q = req('q'),
 		path = req('path'),
 		ET = req('elementtree'),
@@ -12,41 +12,10 @@ module.exports = function (context) {
 		cordova_lib = cordova.cordova_lib,
 		ConfigParser = cordova_lib.configparser,
 		cordova_util = req('cordova-lib/src/cordova/util'),
-		ofs = req("fs"),
 		fs = require("./filesystem")(Q, req('fs'), path),
 		platforms = {};
 
 	// fs, path, ET, cordova_util, ConfigParser
-
-	// Check the currente platform version and map the path of resources
-	function getResPath(){
-		return cordova_util
-				.getInstalledPlatformsWithVersions(context.opts.projectRoot)
-				.then(function(platformMap){
-					if ( typeof platformMap == 'object' && platformMap.android ){
-						var majorVersion = parseInt( platformMap.android[0] );
-						if ( majorVersion != NaN && majorVersion >= 7 ){
-							return path.join('platforms','android','app','src','main','res');
-						}
-					}
-					return path.join('platforms','android','res');
-				});
-	}
-
-	// Check the current platform version and map the path of Java
-	function getJavaPath(){
-		return cordova_util
-				.getInstalledPlatformsWithVersions(context.opts.projectRoot)
-				.then(function(platformMap){
-					if ( typeof platformMap == 'object' && platformMap.android ){
-						var majorVersion = parseInt( platformMap.android[0] );
-						if ( majorVersion != NaN && majorVersion >= 7 ){
-							return path.join('platforms','android','app','src','main','java');
-						}
-					}
-					return path.join('platforms','android','src');
-				});
-	}
 
 	function mapConfig(config) {
 		var element = {
@@ -95,13 +64,13 @@ module.exports = function (context) {
 						element.attrs[targetAttr].push (attrConfig.value[config[attrName]][platformName]);
 					else
 						element[elementKey] = attrConfig.value[config[attrName]][platformName]
-				} else {
+						} else {
 
-					if (targetAttr)
-						element.attrs[targetAttr].push (config[attrName]);
-					else
-						element[elementKey] = config[attrName];
-				}
+							if (targetAttr)
+								element.attrs[targetAttr].push (config[attrName]);
+							else
+								element[elementKey] = config[attrName];
+						}
 			}
 		}
 
@@ -180,130 +149,95 @@ module.exports = function (context) {
 	}
 
 	function build(config) {
+
+		// cordova contains no packages to build dom,
+		//
+
 		var settingsDocuments = buildSettings(config),
 			preferencesDocument = settingsDocuments.preferencesDocument,
 			preferencesStringDocument = settingsDocuments.preferencesStringDocument;
 
-		var pathXml    = null;
-		var pathValues = null;
-		return fs.exists('platforms/android')
-			// Check version Platfom installed
-			.then(function () {
-				return getResPath();
-			})
-			// Write preferences xml file
-			.then(function (pathRes) {
-				pathXml    = path.join(pathRes, 'xml');
-				pathValues = path.join(pathRes, 'values');
-				return fs.mkdir(pathXml);
-			})
-			.then(function () { return fs.writeFile( path.join(pathXml,'apppreferences.xml'), preferencesDocument.write()); })
 
-			// Write localization resource file
-			.then(function () { return fs.mkdir(pathValues); })
-			.then(function (prefs) { return fs.writeFile( path.join(pathValues,'apppreferences.xml'), preferencesStringDocument.write()); })
+		return fs.exists('platforms/android')
+		// Write preferences xml file
+			.then(function () { return fs.mkdir('platforms/android/res/xml'); })
+			.then(function () { return fs.writeFile('platforms/android/res/xml/apppreferences.xml', preferencesDocument.write()); })
+
+		// Write localization resource file
+			.then(function () { return fs.mkdir('platforms/android/res/values'); })
+			.then(function (prefs) { return fs.writeFile('platforms/android/res/values/apppreferences.xml', preferencesStringDocument.write()); })
 
 			.then(function () { console.log('android preferences file was successfully generated'); })
 			.catch(function (err) {
-				if (err.code === 'NEXIST') {
-					console.log("Platform android not found: skipping");
-					return;
-				}
+			if (err.code === 'NEXIST') {
+				console.log("Platform android not found: skipping");
+				return;
+			}
 
-				throw err;
-			});
+			throw err;
+		});
 	}
 
 	function afterPluginInstall () {
-		var pathJava = null;
 		return fs.exists('platforms/android')
-			// Check version Platfom installed
-			.then(function () {
-				return getJavaPath();
-			})
-			// Import preferences into native android project
-			.then(function (pathJ) {
-				pathJava = pathJ;
-				return fs.readFile(path.resolve(__dirname, '../../src/android/AppPreferencesActivity.template'));
-			})
+		// Import preferences into native android project
+			.then(function () { return fs.readFile(path.resolve(__dirname, '../../src/android/AppPreferencesActivity.template')); })
 			.then(function (tmpl) {
-				var projectRoot = cordova_lib.cordova.findProjectRoot(process.cwd()),
-					projectXml = cordova_util.projectConfig(projectRoot),
-					projectConfig = new ConfigParser(projectXml);
+			var projectRoot = cordova_lib.cordova.findProjectRoot(process.cwd()),
+				projectXml = cordova_util.projectConfig(projectRoot),
+				projectConfig = new ConfigParser(projectXml);
 
-				var packageName = projectConfig.android_packageName() || projectConfig.packageName();
-
-				return (
-					//'package me.apla.cordova;\n\n' +
-					//'import ' + packageName + '.R;\n\n' +
-					tmpl.toString ('utf8').replace (/ANDROID_PACKAGE_NAME/g, packageName)
-				);
-			})
+			return ('package me.apla.cordova;\n\n' +
+					'import ' + (projectConfig.android_packageName() || projectConfig.packageName()) + '.R;\n\n' +
+					tmpl);
+		})
 			.then(function (data) {
-				var androidPackagePath = "me.apla.cordova".replace (/\./g, '/');
-				var activityFileName= path.join (pathJava, androidPackagePath, 'AppPreferencesActivity.java');
-				return fs.writeFile(activityFileName, data);
-			})
+			var androidPackagePath = "me.apla.cordova".replace (/\./g, '/');
+			var activityFileName= path.join ('platforms/android/src', androidPackagePath, 'AppPreferencesActivity.java');
+
+			return fs.writeFile(activityFileName, data);
+		})
 
 			.catch(function (err) {
-				if (err.code === 'NEXIST') {
-					console.log("Platform android not found: skipping");
-					return;
-				}
+			if (err.code === 'NEXIST') {
+				console.log("Platform android not found: skipping");
+				return;
+			}
 
-				throw err;
-			});
+			throw err;
+		});
 
 	}
 
 	function clean(config) {
 
 		var androidPackagePath = "me.apla.cordova".replace (/\./g, '/');
-		var activityFileName = null;
+		var activityFileName = path.join ('platforms/android/src', androidPackagePath, 'AppPreferencesActivity.java');
 
-		var pathXml    = null;
-		var pathValues = null;
 		return fs.exists('platforms/android')
-			// Check version Platfom installed
-			.then(function () {
-				return getResPath();
-			})
+		// Remove preferences xml file
+			.then(function () { return fs.unlink('platforms/android/res/xml/apppreferences.xml'); })
 
-			// Remove preferences xml file
-			.then(function (pathRes) {
-				pathXml    = path.join(pathRes, 'xml');
-				pathValues = path.join(pathRes, 'values');
-				return fs.unlink( path.join(pathXml,'apppreferences.xml') );
-			})
+		// Remove localization resource file
+			.then(function (prefs) { return fs.unlink('platforms/android/res/values/apppreferences.xml'); })
 
-			// Remove localization resource file
-			.then(function (prefs) {
-				return fs.unlink( path.join(pathValues,'apppreferences.xml') );
-			})
-
-			// Check version Platfom installed
-			.then(function () {
-				return getJavaPath();
-			})
-
-			// Remove preferences from native android project
-			.then(function (pathJava) {
-				activityFileName = path.join (pathJava, androidPackagePath, 'AppPreferencesActivity.java');
-				return fs.unlink(activityFileName);
-			})
+		// Remove preferences from native android project
+			.then(function (data) {
+			return fs.unlink(activityFileName);
+		})
 
 			.then(function () { console.log('android preferences file was successfully cleaned'); })
 			.catch(function (err) {
-				if (err.code === 'NEXIST') {
-					console.log("Platform android not found: skipping");
-					return;
-				} else if (err.code === 'ENOENT' && err.path === activityFileName) {
-					// Activity not generated, that's fine
-					return;
-				}
+			if (err.code === 'NEXIST') {
+				console.log("Platform android not found: skipping");
+				return;
+			} else if (err.code === 'ENOENT' && err.path === activityFileName) {
+				// Activity not generated, that's fine
+				return;
+			}
 
-				throw err;
-			});
+			throw err;
+		});
 	}
 
 	return {

@@ -16,19 +16,6 @@ var tests = {
 var fail = [];
 var pass = 0;
 
-
-function addFailure (msg) {
-	var err = new Error (msg);
-	var errObject = {};
-	for (var k in err) {
-		errObject[k] = err[k]
-	}
-	errObject.message  = err.message;
-	errObject.location = err.stack.split (/\n/)[1].match (/(\:\d+\:\d+)$/)[1];
-
-	fail.push (msg + ';' + errObject.location);
-}
-
 var nonExistingKeyName = 'test-key-must-not-exists';
 
 var appp = (typeof AppPreferences !== "undefined") ? new AppPreferences () : plugins.appPreferences;
@@ -47,7 +34,7 @@ function fetchIncrementStore (keyName) {
 		pass++;
 	}, function (err) {
 		console.error (err);
-		addFailure ('promise '+keyName+' failed');
+		fail.push ('promise '+keyName+' failed');
 	}).then (function () {
 		appp.store (keyName, testRunCount)
 	}).then (function () {
@@ -62,7 +49,7 @@ fetchIncrementStore ("test-run-count");
 appp.fetch ("test-promise").then (function () {
 	pass++;
 }, function (err) {
-	addFailure ('promise fetch failed');
+	fail.push ('promise fetch failed');
 });
 
 appp.fetch (function (ok) {
@@ -75,39 +62,39 @@ appp.fetch (function (ok) {
 				if (ok !== null && ok) {
 					pass++;
 				} else {
-					addFailure ('fetch>store>fetch '+nonExistingKeyName);
+					fail.push ('fetch>store>fetch '+nonExistingKeyName);
 				}
 				appp.remove (function (ok) {
 					pass++;
 				}, function (err) {
-					addFailure ('fetch>store>fetch>remove '+nonExistingKeyName + ', error: '+err);
+					fail.push ('fetch>store>fetch>remove '+nonExistingKeyName + ', error: '+err);
 				}, nonExistingKeyName);
 			}, function (err) {
-				addFailure ('fetch>store>fetch null '+nonExistingKeyName);
+				fail.push ('fetch>store>fetch null '+nonExistingKeyName);
 			}, nonExistingKeyName);
 		}, function (err) {
-			addFailure ('fetch>store '+nonExistingKeyName);
+			fail.push ('fetch>store '+nonExistingKeyName);
 		}, nonExistingKeyName, true);
 	} else {
 		appp.remove (function (ok) {
 			pass++;
 		}, function (err) {
-			addFailure ('fetch>remove '+nonExistingKeyName + '="'+err+'"');
+			fail.push ('fetch>remove '+nonExistingKeyName + '="'+err+'"');
 		}, nonExistingKeyName);
-		addFailure ('fetch exists '+nonExistingKeyName + '="'+ok+'"');
+		fail.push ('fetch exists '+nonExistingKeyName + '="'+ok+'"');
 	}
 }, function (err) {
-	addFailure ('fetch '+nonExistingKeyName);
+	fail.push ('fetch '+nonExistingKeyName);
 }, nonExistingKeyName);
 
 appp.fetch (function (ok) {
 	if (ok === null) {
 		pass++;
 	} else {
-		addFailure ('fetch not null '+'dict2.'+nonExistingKeyName + '="'+ok+'"');
+		fail.push ('fetch not null '+'dict2.'+nonExistingKeyName + '="'+ok+'"');
 	}
 }, function (err) {
-	addFailure ('fetch '+'dict2.'+nonExistingKeyName);
+	fail.push ('fetch '+'dict2.'+nonExistingKeyName);
 }, "dict2", nonExistingKeyName);
 
 for (var testK in tests) {
@@ -121,11 +108,11 @@ for (var testK in tests) {
 					pass ++;
 				else {
 					console.error ('fetched incorrect value for ' + testName + ': expected ' + JSON.stringify (testValue) + ' got ' + JSON.stringify (ok));
-					addFailure ('store>fetch not equal '+testName);
+					fail.push ('store>fetch not equal '+testName);
 				}
 			}, function (err) {
 				console.error ('fetch value failed for ' + testName + ' and value ' + testValue);
-				addFailure ('store>fetch '+testName);
+				fail.push ('store>fetch '+testName);
 			}, testName);
 			if ('device' in window && device.platform && nativePlatforms[device.platform]) {
 				// TODO: replace by localStorage fallback module
@@ -133,7 +120,7 @@ for (var testK in tests) {
 				if (lsValue === null) {
 					pass ++;
 				} else if (lsValue === testValue) {
-					addFailure ('store>fetch (localStorage) '+testName);
+					fail.push ('store>fetch (localStorage) '+testName);
 				} else {
 					console.error ('localStorage contains unexpected value: "' + lsValue + '" / "' + testValue + '"');
 					pass ++;
@@ -142,7 +129,7 @@ for (var testK in tests) {
 
 		}, function (err) {
 			console.error ('store value failed for ' + testName + ' and value ' + testValue);
-			addFailure ('store '+testName);
+			fail.push ('store '+testName);
 		}, testName, testValue);
 		console.log ('trying to store', "dict.x" + testName);
 		appp.store (function (ok) {
@@ -153,15 +140,15 @@ for (var testK in tests) {
 					pass ++;
 				else {
 					console.error ('fetched incorrect value for dict.x' + testName + ': expected ' + JSON.stringify (testValue) + ' got ' + JSON.stringify (ok));
-					addFailure ('store>fetch not equal '+'dict.x'+testName);
+					fail.push ('store>fetch not equal '+'dict.x'+testName);
 				}
 			}, function (err) {
 				console.error ('fetch value failed for ' + "dict.x" + testName + ' and value ' + testValue);
-				addFailure ('store>fetch '+'dict.x'+testName);
+				fail.push ('store>fetch '+'dict.x'+testName);
 			}, "dict", "x" + testName);
 		}, function (err) {
 			console.error ('store value failed for ' + "dictx" + testName + ' and value ' + testValue);
-			addFailure ('store '+'dict.x'+testName);
+			fail.push ('store '+'dict.x'+testName);
 		}, "dict", "x" + testName, testValue);
 
 	}) (testK, tests[testK]);
