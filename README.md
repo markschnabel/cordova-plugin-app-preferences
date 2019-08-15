@@ -1,21 +1,23 @@
-Application preferences plugin for Cordova 3+
+Application preferences plugin for Cordova 7+
 -----------------------
+NOTE: This repo is forked from the [original](https://github.com/apla/me.apla.cordova.app-preferences) because it was no longer maintained and it needed to be updated.
+This repo is just a patched version, it is not maintained either.
 
 Why you should use this plugin?
 
  * Cordova + Promise interface out of the box
  * Supports many platforms (Android, iOS/macOS, Windows and local storage fallback)
  * Have tests
- (iOS: [![iOS and browser status](https://travis-ci.org/apla/me.apla.cordova.app-preferences.svg)](https://travis-ci.org/apla/me.apla.cordova.app-preferences),
- Android: [![Android status](https://circleci.com/gh/apla/me.apla.cordova.app-preferences.svg?&style=shield&circle-token=f3e5e46c1a698c62f0450bf1d25a3694d4f714c6)](https://circleci.com/gh/apla/me.apla.cordova.app-preferences),
- Windows: [![Windows status](https://ci.appveyor.com/api/projects/status/gl3qxq2o728sqbev?svg=true)](https://ci.appveyor.com/project/apla/me-apla-cordova-app-preferences),
- Browser: [![iOS and browser status](https://travis-ci.org/apla/me.apla.cordova.app-preferences.svg)](https://travis-ci.org/apla/me.apla.cordova.app-preferences))
+ (iOS: [![iOS and browser status](https://travis-ci.org/cgraham-zmtp/cordova-plugin-app-preferences.svg)](https://travis-ci.org/cgraham-zmtp/cordova-plugin-app-preferences),
+ Android: [![Android status](https://circleci.com/gh/cgraham-zmtp/cordova-plugin-app-preferences.svg?&style=shield&circle-token=f3e5e46c1a698c62f0450bf1d25a3694d4f714c6)](https://circleci.com/gh/cgraham-zmtp/cordova-plugin-app-preferences),
+ Windows: [![Windows status](https://ci.appveyor.com/api/projects/status/gl3qxq2o728sqbev?svg=true)](https://ci.appveyor.com/project/cgraham-zmtp/me-cgraham-zmtp-cordova-app-preferences),
+ Browser: [![iOS and browser status](https://travis-ci.org/cgraham.zmtp/cordova-plugin-app-preferences.svg)](https://travis-ci.org/cgraham-zmtp/cordova-plugin-app-preferences))
  * Supports simple and complex data structures
  * Supports removal of the keys
  * Have preference pane generator for application (for Android and iOS) and can show native preferences
- * (Untested) reference change notification [#37](apla/me.apla.cordova.app-preferences#37)
- * (Untested) named preferences files for android and iOS suites [#97](apla/me.apla.cordova.app-preferences#97)
- * (Untested) synchronized preferences via iCloud or windows roaming [#75](apla/me.apla.cordova.app-preferences#75)
+ * (Untested) reference change notification [#37](cgraham-zmtp/cordova-plugin-app-preferences#37)
+ * (Untested) named preferences files for android and iOS suites [#97](cgraham-zmtp/cordova-plugin-app-preferences#97)
+ * (Untested) synchronized preferences via iCloud or windows roaming [#75](cgraham-zmtp/cordova-plugin-app-preferences#75)
 
 Installing
 ---
@@ -26,14 +28,14 @@ From plugin registry:
 
 From the repo:
 
-	$ cordova plugin add https://github.com/apla/me.apla.cordova.app-preferences
+	$ cordova plugin add https://github.com/cgraham-zmtp/cordova-plugin-app-preferences
 
 From a local clone:
 
-	$ cordova plugin add /path/to/me.apla.cordova.app-preferences/folder
+	$ cordova plugin add /path/to/cordova-plugin-app-preferences/folder
 
 
-https://github.com/apla/me.apla.cordova.app-preferences/issues/97
+https://github.com/cgraham-zmtp/cordova-plugin-app-preferences/issues/97
 
 More information:
 [Command-line Interface Guide](http://cordova.apache.org/docs/en/edge/guide_cli_index.md.html#The%20Command-line%20Interface).
@@ -114,12 +116,13 @@ Notes
 Tests
 ---
 Tests are available in `src/test.js`. After installing plugin you can add test code from this file and then launch `testPlugin()` function.
+The CI links may not work since this repo is forked from the original.
 
- * iOS pass locally, Travis: ![iOS and browser status](https://travis-ci.org/apla/me.apla.cordova.app-preferences.svg)
- * Android pass locally, CircleCI: ![Android status](https://circleci.com/gh/apla/me.apla.cordova.app-preferences.svg?&style=shield&circle-token=f3e5e46c1a698c62f0450bf1d25a3694d4f714c6)
+ * iOS pass locally, Travis: ![iOS and browser status](https://travis-ci.org/cgraham-zmtp/cordova-plugin-app-preferences.svg)
+ * Android pass locally, CircleCI: ![Android status](https://circleci.com/gh/cgraham-zmtp/cordova-plugin-app-preferences.svg?&style=shield&circle-token=f3e5e46c1a698c62f0450bf1d25a3694d4f714c6)
  * BlackBerry 10 pass locally
  * Windows Phone 8 tests pass locally, Appveyor: ![Windows status](https://ci.appveyor.com/api/projects/status/gl3qxq2o728sqbev?svg=true)
- * Browser pass locally, Travis: ![iOS and browser status](https://travis-ci.org/apla/me.apla.cordova.app-preferences.svg)
+ * Browser pass locally, Travis: ![iOS and browser status](https://travis-ci.org/cgraham-zmtp/cordova-plugin-app-preferences.svg)
 
 Module update for cordova < 5.x
 ---
@@ -177,3 +180,6 @@ https://github.com/phonegap/phonegap-plugins/tree/master/iOS/ApplicationPreferen
 
 Another android implementation for cordova 2.x:
 https://github.com/macdonst/AppPreferences
+
+Original version of this repo:
+https://github.com/apla/me.apla.cordova.app-preferences
